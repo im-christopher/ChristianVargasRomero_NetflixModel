@@ -1,11 +1,8 @@
 name: Modelops deploy
 on:
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
   repository_dispatch:
     types: [ml_ci_cd]
+
 jobs:
   ml_ci_cd:
     runs-on: ubuntu-latest
@@ -13,30 +10,45 @@ jobs:
       matrix:
         python-version: [3.8]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
           python-version: ${{ matrix.python-version }}
-    - name: list 
-      run: python --version
-    - name: pip install
-      run: pip install -r requirements.txt
-    - name: download dataset
-      run: wget -O data/netflix_title.csv ${{github.event.client_payload.dataseturl}}
-    - name: cat dataset
-      run: cat data/netflix_titles.csv
-    - name: train model
-      run: python model/train.py
-    - name: docker build
-      run: docker build -t ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.sha}} .
-    - name: show images
-      run: docker images
-    - name: docker login
-      env:
-        DOCKER_USER: ${{secrets.DOCKER_USER}}
-        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-      run: |
-        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
-    - name: docker Push
-      run: docker push ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.event.client_payload.sha}} 
+
+      - name: list 
+        run: python --version
+
+      - name: pip install
+        run: pip install -r requirements.txt
+
+      - name: download dataset
+        run: wget -O data/netflix_titles.csv ${{github.event.client_payload.dataseturl}}
+
+      - name: cat dataset
+        run: cat data/netflix_titles.csv
+
+      - name: train model
+        run: python model/train.py
+
+      - name: docker build
+        run: |
+          IMAGE="${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}"
+          docker build -t $IMAGE:${{github.sha}} .
+          docker tag $IMAGE:${{github.sha}} $IMAGE:latest
+
+      - name: show images
+        run: docker images
+
+      - name: docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+
+      - name: docker Push
+        run: |
+          IMAGE="${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}"
+          docker push $IMAGE:${{github.sha}}
+          docker push $IMAGE:latest
