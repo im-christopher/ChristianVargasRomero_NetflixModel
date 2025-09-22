@@ -48,7 +48,5 @@ jobs:
         run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
 
       - name: docker Push
-        run: |
-          IMAGE="${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}"
-          docker push $IMAGE:${{github.sha}}
-          docker push $IMAGE:latest
+        run: docker push ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:${{github.event.client_payload.sha}} &&
+           docker push ${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}:latest
