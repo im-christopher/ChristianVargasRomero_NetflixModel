@@ -35,8 +35,8 @@ jobs:
       - name: docker build
         run: |
           IMAGE="${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}"
-          docker build -t $IMAGE:${{github.event.client_payload.dataseturl}} .
-          docker tag $IMAGE:${{github.event.client_payload.dataseturl}} $IMAGE:latest
+          docker build -t $IMAGE:${{github.event.client_payload.sha}} .
+          docker tag $IMAGE:${{github.event.client_payload.sha}} $IMAGE:latest
 
       - name: show images
         run: docker images
@@ -50,5 +50,5 @@ jobs:
       - name: docker Push
         run: |
               IMAGE="${{secrets.DOCKER_USER}}/${{secrets.MODEL_NAME}}"
-              docker push $IMAGE:${{github.event.client_payload.dataseturl}}
+              docker push $IMAGE:${{github.event.client_payload.sha}}
               docker push $IMAGE:latest
