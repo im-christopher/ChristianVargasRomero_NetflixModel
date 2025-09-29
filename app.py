@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
 from pydantic import BaseModel
 import numpy as np
 from joblib import load
@@ -70,4 +71,4 @@ def predict_rating(data: InputData):
         }
 
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=400, detail=str(e))
